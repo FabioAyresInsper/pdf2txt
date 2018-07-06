@@ -1,12 +1,14 @@
 import boto3
 import os
 import os.path
+import pyspark
 import subprocess
 
 BUCKET_NAME = "justicaestadual"
 S3_FOLDER = "diarios_03_04_2018"
 TMP_DIR = "/tmp"
-FILE_LIST = "filelist.txt"
+# FILE_LIST = "filelist.txt"
+FILE_LIST = "filelist_small.txt"
 
 def process_pdf_file(filename_pdf, bucket_name=BUCKET_NAME, s3_folder=S3_FOLDER, tmp_dir=TMP_DIR):
     filename_txt = filename_pdf[:-4] + ".txt"
@@ -43,7 +45,13 @@ def process_pdf_file(filename_pdf, bucket_name=BUCKET_NAME, s3_folder=S3_FOLDER,
 
 
 if __name__ == "__main__":
-    file_list = ["03042018MA.pdf"]
-    for filename_pdf in file_list: 
-        process_pdf_file(filename_pdf)
+    app_name = "Convert PDFs to TXTs"
+    master = "local[*]"
+
+    conf = pyspark.SparkConf().setAppName(app_name).setMaster(master)
+    sc = pyspark.SparkContext(conf=conf)
+
+    sc.textFile(FILE_LIST) \
+            .repartition(sc.defaultParallelism * 3) \
+            .foreach(process_pdf_file)
 
