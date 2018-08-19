@@ -4,11 +4,19 @@ import os.path
 import pyspark
 import subprocess
 
+# Experimentos iniciais.
 BUCKET_NAME = "justicaestadual"
 S3_FOLDER = "diarios_03_04_2018"
 TMP_DIR = "/tmp"
 # FILE_LIST = "filelist.txt"
 FILE_LIST = "filelist_small.txt"
+
+# Experimentos diarios oficiais.
+BUCKET_NAME = "diariosdanilo"
+S3_FOLDER = "Diarios"
+TMP_DIR = "/tmp"
+# FILE_LIST = "filelist_diarios.txt"
+FILE_LIST = "filelist_diarios_small.txt"
 
 def process_pdf_file(filename_pdf, bucket_name=BUCKET_NAME, s3_folder=S3_FOLDER, tmp_dir=TMP_DIR):
     filename_txt = filename_pdf[:-4] + ".txt"
@@ -43,6 +51,8 @@ def process_pdf_file(filename_pdf, bucket_name=BUCKET_NAME, s3_folder=S3_FOLDER,
     os.remove(path_txt)
     os.remove(path_log)
 
+def print_filename(filename_pdf):
+    print(filename_pdf)
 
 if __name__ == "__main__":
     app_name = "Convert PDFs to TXTs"
@@ -51,7 +61,10 @@ if __name__ == "__main__":
     conf = pyspark.SparkConf().setAppName(app_name).setMaster(master)
     sc = pyspark.SparkContext(conf=conf)
 
+    #sc.textFile(FILE_LIST) \
+    #        .repartition(sc.defaultParallelism * 3) \
+    #        .foreach(process_pdf_file)
+
     sc.textFile(FILE_LIST) \
             .repartition(sc.defaultParallelism * 3) \
-            .foreach(process_pdf_file)
-
+            .foreach(print_filename)
